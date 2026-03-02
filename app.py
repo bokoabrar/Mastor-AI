@@ -1,84 +1,102 @@
 import streamlit as st
-from groq import Groq
+from mistralai import Mistral
 
-# ১. Groq API কনফিগারেশন (আপনার Key এখানে দিন)
-GROQ_API_KEY = "gsk_y4M3B2l2EovFhH6pY68yWGdyb3FyeXbJ6N1kR5N2l2EovFhH6pY68y" 
-client = Groq(api_key=GROQ_API_KEY)
+# 1. Mistral API Key (Apnar key-ti ekhane thik vabe boseyechi)
+MISTRAL_API_KEY = "Ag_019cac33e1d977f3acd14a6650c89d9b"
+client = Mistral(api_key=MISTRAL_API_KEY)
 
-# ২. পেজ সেটআপ ও ক্লিন ডিজাইন (Gemini/ChatGPT Style)
+# 2. Gemini/ChatGPT Style Full UI Config
 st.set_page_config(page_title="Mastor AI", page_icon="🎓", layout="centered")
 
-# কাস্টম CSS (সবুজ গ্লো বা অতিরিক্ত রঙ সরিয়ে একদম ক্লিন করা হয়েছে)
 st.markdown("""
     <style>
-    /* মেইন ব্যাকগ্রাউন্ড কালো (ডার্ক মোড) */
+    /* Dark Mode Theme - Huhu amar moto */
     .stApp {
-        background-color: #000000;
+        background-color: #131314;
     }
     
-    /* টাইটেল একদম ক্লিন সাদা করা হয়েছে (কোনো গ্লো নেই) */
-    .clean-title {
-        font-size: 40px;
-        color: #FFFFFF;
+    /* Title Style */
+    .glow-text {
+        font-size: 38px;
+        color: #E3E3E3;
         text-align: center;
-        font-weight: bold;
-        padding: 20px 0;
+        font-weight: 600;
+        margin-top: 20px;
+        letter-spacing: -0.5px;
     }
 
-    /* চ্যাট বাবল ডিজাইন (Gemini Style - ক্লিন এবং গ্রে) */
+    /* Chat Messages - Modern Bubble Look */
     .stChatMessage {
-        border-radius: 10px !important;
-        background-color: #1A1A1A !important;
-        border: 1px solid #333 !important;
-        margin-bottom: 8px !important;
+        background-color: transparent !important;
+        border-radius: 0px !important;
+        padding: 20px 0px !important;
+        margin-bottom: 5px !important;
+        border-bottom: 1px solid #282829 !important;
     }
 
-    /* টেক্সট কালার উজ্জ্বল সাদা এবং পড়তে সুবিধা এমন */
-    .stMarkdown p {
-        color: #E0E0E0 !important;
-        font-size: 16px !important;
-        line-height: 1.6 !important;
+    /* AI Assistant Profile Icon Style */
+    .stChatMessage[data-testimonial="assistant"] {
+        background-color: #1E1F20 !important;
+        border-radius: 12px !important;
+        padding: 15px !important;
+        border: none !important;
     }
 
-    /* অপ্রয়োজনীয় জিনিস লুকিয়ে একদম ক্লিন লুক দেওয়া হয়েছে */
+    /* Text Clarity (Fix for 2973.png) - Ekdom Sada ebong Sposto */
+    .stMarkdown p, .stChatMessage p {
+        color: #E3E3E3 !important;
+        font-size: 17px !important;
+        font-family: 'Inter', sans-serif !important;
+        line-height: 1.7 !important;
+    }
+
+    /* Input Box Styling */
+    .stChatInputContainer {
+        border-top: 1px solid #333 !important;
+        background-color: #131314 !important;
+    }
+
+    /* Appgeyser Advertisement ba Header Hide kora */
     header {visibility: hidden;}
     footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# ক্লিন টাইটেল প্রদর্শন
-st.markdown('<div class="clean-title">Mastor AI</div>', unsafe_allow_html=True)
+# UI Branding
+st.markdown('<div class="glow-text">Mastor AI</div>', unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #8E918F; font-size: 15px;'>How can I help you today?</p>", unsafe_allow_html=True)
 
-# ৩. মেমোরি সিস্টেম
+# 3. Persistent Chat Memory (Memory Fix)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# চ্যাট হিস্ট্রি স্ক্রিনে ধরে রাখা (Chat History Visibility)
+# Screen-e purano chatti dekhano (History Visibility)
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ৪. চ্যাট লজিক (Hello দিয়ে শুরু এবং মেমোরি)
-if prompt := st.chat_input("যেকোনো প্রশ্ন করুন..."):
-    # ইউজারের মেসেজ সেভ
+# 4. User Interaction & AI Logic
+if prompt := st.chat_input("Enter a prompt here..."):
+    # User message update
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # Assistant response (Mistral Large 3 - Best for Reasoning)
     with st.chat_message("assistant"):
         try:
-            # Groq API কল (মেমোরি সহ)
-            completion = client.chat.completions.create(
-                model="llama3-8b-8192",
+            # Mistral Large model call
+            response = client.chat.complete(
+                model="mistral-large-latest",
                 messages=[
-                    {"role": "system", "content": "You are Mastor AI. Start with 'Hello'. Answer in friendly Bengali. Keep responses clean."},
+                    {"role": "system", "content": "Tumi Mastor AI. Gemini-r moto intelligent, clean and professional Banglay uttor dabe. Bullet point use korbe."},
                     *[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
                 ],
             )
-            response_text = completion.choices[0].message.content
-            st.markdown(response_text)
-            
-            # মেমোরিতে সেভ
-            st.session_state.messages.append({"role": "assistant", "content": response_text})
+            full_res = response.choices[0].message.content
+            st.markdown(full_res)
+            # Memory-te save kora jate poreo mone thake
+            st.session_state.messages.append({"role": "assistant", "content": full_res})
         except Exception as e:
-            st.error(f"দুঃখিত ভাই, একটু সমস্যা হয়েছে: {str(e)}")
+            st.error("Error: Apnar Mistral API key-te shomoshya thakte pare.")

@@ -1,86 +1,97 @@
 import streamlit as st
 from groq import Groq
 
-# ১. Groq এআই কনফিগারেশন
-GROQ_API_KEY = "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"
+# 1. Groq API Configuration
+# Ekhane apnar gsk_... key-ti boshan
+GROQ_API_KEY = "APNAR_GROQ_API_KEY"
 client = Groq(api_key=GROQ_API_KEY)
 
-# ২. প্রিমিয়াম ব্ল্যাক ইন্টারফেস ও গ্লোয়িং ডিজাইন
+# 2. Page Setup & Modern UI Design (Gemini Style)
 st.set_page_config(page_title="Mastor AI", page_icon="🎓", layout="centered")
 
+# Custom CSS for Dark Mode & Clean Chat
 st.markdown("""
     <style>
-    /* মেইন ব্যাকগ্রাউন্ড একদম কুচকুচে কালো */
+    /* Main Background: Pure Deep Black */
     .stApp {
         background-color: #000000;
     }
     
-    /* Mastor AI নামের নিয়ন গ্লোয়িং ইফেক্ট */
-    .glow-text {
-        font-size: 45px;
-        color: #fff;
+    /* Mastor AI Glowing Title */
+    .glow-header {
+        font-size: 40px;
+        color: #FFFFFF;
         text-align: center;
-        font-weight: bold;
-        text-shadow: 0 0 10px #00FFA2, 0 0 20px #00FFA2, 0 0 30px #00FFA2;
-        padding: 20px;
-        margin-top: -30px;
+        font-weight: 600;
+        text-shadow: 0 0 12px #00FFA2;
+        padding: 30px 0px 10px 0px;
+        letter-spacing: 1px;
     }
 
-    /* চ্যাট বাবল ডিজাইন */
+    /* Chat Messages: Professional Look */
     .stChatMessage {
-        border-radius: 15px;
-        background-color: #121212 !important;
-        border: 1px solid #222;
-        margin-bottom: 10px;
-        color: white !important;
+        background-color: #111111 !important;
+        border-radius: 12px !important;
+        border: 1px solid #222 !important;
+        margin-bottom: 8px !important;
     }
 
-    /* স্ক্রিন থেকে অপ্রয়োজনীয় মেনু লুকানো */
+    /* Text: Soft White (Easy to Read) */
+    .stMarkdown p {
+        color: #D1D1D1 !important;
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+    }
+
+    /* Hide unnecessary elements */
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* ইনপুট বক্সের ডিজাইন */
+    /* Input Box styling */
     .stChatInputContainer {
-        padding-bottom: 20px;
+        border-top: 1px solid #333 !important;
+        padding-top: 10px !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# গ্লোয়িং টাইটেল প্রদর্শন
-st.markdown('<div class="glow-text">Mastor AI</div>', unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #888;'>আপনার পড়াশোনা ও ক্যারিয়ারের স্মার্ট সহযোগী</p>", unsafe_allow_html=True)
-st.divider()
+# UI Title
+st.markdown('<div class="glow-header">Mastor AI</div>', unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'>আপনার স্মার্ট এআই সহযোগী</p>", unsafe_allow_html=True)
 
-# ৩. মেমোরি ও চ্যাট হিস্ট্রি (যাতে আগের কথা মনে থাকে)
+# 3. Memory & Chat History System
+# 'messages' session state-e thakar karone tab refresh na kora porjonto memory thakbe
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# আগের সব চ্যাট স্ক্রিনে দেখানো (History)
+# Screen-e ager sob kotha (History) dekhano
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ৪. ইউজার ইনপুট ও Groq এর মাধ্যমে উত্তর
-if prompt := st.chat_input("আপনার প্রশ্নটি এখানে লিখুন..."):
-    # ইউজারের মেসেজ মেমোরিতে সেভ করা
+# 4. Chat Logic with Memory
+if prompt := st.chat_input("Amake jekono kichu jiggesh korun..."):
+    # User message save and display
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # Assistant response generation
     with st.chat_message("assistant"):
         try:
-            # Groq Llama-3 মডেল (সুপার ফাস্ট)
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+            # Full history AI-er kache pathano hoy jate se purano kotha mone rakhte pare
+            chat_completion = client.chat.completions.create(
+                model="llama3-8b-8192",
                 messages=[
-                    {"role": "system", "content": "You are Mastor AI, a helpful educational assistant for Honors, Diploma, and Nursing students in Bangladesh. Always reply in friendly Bengali."},
+                    {"role": "system", "content": "Tumi Mastor AI. Ekdam professional ebong friendly Banglay uttor dabe. Purano context mone rekhe kotha bolbe."},
                     *[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
                 ],
             )
-            response = completion.choices[0].message.content
-            st.markdown(response)
+            full_response = chat_completion.choices[0].message.content
+            st.markdown(full_response)
             
-            # এআই এর উত্তর মেমোরিতে সেভ করা
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            # AI response save kora (Memory)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            
         except Exception as e:
-            st.error(f"দুঃখিত ভাই, একটু সমস্যা হয়েছে: {str(e)}")
+            st.error(f"Error: {str(e)}")
